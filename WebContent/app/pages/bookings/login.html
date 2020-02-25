@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	   	<meta charset='utf-8'>
+	   	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	   	<meta name="viewport" content="width=device-width, initial-scale=1">
+	   	<script src="js/server-call.js" type="text/javascript"></script>
+		<title>Login</title>
+		<script>
+			removeSessionAttribute("user");
+		</script>
+	</head>
+	<script>
+		function check(){
+			removeSessionAttribute("user");
+			var username = document.getElementById("username").value;
+			var password = document.getElementById("password").value;
+			var args = [{"String":username},{"String":password}];
+			var result = call("Login","verifyUser",args);
+			if(result[0].returnValue === "true"){
+				args = [{"String":username}];
+				result = call("Login","getFullName",args);
+				setSessionAttribute("user",result[0].returnValue);
+				setSessionAttribute("email",username);
+				result = call("Login","getMobile",args);
+				setSessionAttribute("mobile",result[0].returnValue);
+				return true;
+			}
+			else{
+				alert("Invalid Credentials");
+				removeSessionAttribute("user");
+				return false;
+			}
+		}
+	</script>
+	<style>
+		body{background-color:#3cbfbf}.login{text-align:center;width:100%}
+		.container{background-color:#fff;display:table;margin:0 auto;margin-top:13vh;width:400px;height:480px;border-radius:3px;}
+		h1{margin-top:15px;width:100%;height:50px;text-align:center;font-size:40px;font-family:"Tw Cen MT";border-radius:3px;}
+		h2{color:#fff;font-family:"Tw Cen MT";font-size:50px;}
+		.login-form{text-align:center;font-family:"Tw Cen MT";font-size:25px;margin-top:35px}
+		.login-form input{width:85%;height:40px;margin:10px;text-align:center;border:1px solid;border-radius:5px;background-color:#f7f7f7}
+		.login-form input[type=submit]{width:90%;height:50px;margin-top:30px;background-color:#3cbfbf;cursor:pointer;color:#fff;border:0;border-radius:10px;}
+		.login-form input[type=submit]:hover{background-color:#3c7ea6}	
+		@media(max-width:500px){.container{width:100%;}h2{font-size:30px;}}
+	</style>
+	<body>
+		<div class='login'>
+			<h2>Registered Users</h2>
+			<form method="post" action="../Account/" onsubmit="return check();">
+				<div class='container'>
+					<h1>Login</h1>
+						<div class='login-form'>
+							<span>Registered Email</span> <input type="text" name='username' id='username' value='' placeholder='USERNAME' required />
+							<span>Password</span> <input type="password" name='password' id='password' value='' placeholder='PASSWORD' required />
+							<input type="submit" name="submit" id='submit' value="LOGIN" />
+							<br><br><div><a href="ForgotPassword/">Forgot Password</a></div>
+						</div>
+				</div>
+			</form>
+		</div>
+	</body>
+</html>

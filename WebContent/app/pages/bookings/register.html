@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+<head>
+
+   <meta charset='utf-8'>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <script src="js/master.js" type="text/javascript"></script>
+   <link rel="stylesheet" href="css/master.css">
+  
+   <title>Home</title>
+   <script>
+   		if(user===null || user === "" || user.trim() === "" || user.toUpperCase() ==="FALSE"){
+   			home();
+   		}
+   		else{
+   			removeSessionAttribute("user");
+   		}
+   </script>
+</head>
+	<script>
+			$(document).ready(function(){
+	   			var picker1 = $('#dob').datetimepicker({
+	   				validateOnBlur:true,
+	   				theme:'light',
+	   				maxDate:new Date(),
+	   				defaultDate:0,
+	   				todayButton:true,
+	   				timepicker:false
+	   			});
+			});
+			function submitRegistrationForm(){
+				loading();
+				if($("#password").val() != $("#confirm-password").val()){
+					loadingStop();
+					alert("Password and Confirm Password fields do not match!");
+					return false;
+				}
+
+				if($("#dob").val().trim() === ''){
+						loadingStop();
+						alert("Please select your Date of Birth!");
+						return false;
+				}
+	
+				
+				var args = [{"String":$("#mobile").val()}];
+				var result = call("Register","verifyMobile",args);
+				if(result[0].returnValue === "false"){
+					loadingStop();
+					alert("This Mobile Number is already registered in our database!");
+					return false;
+				}
+				
+				args = [{"String":$("#email").val()}];
+				result = call("Register","verifyEmail",args);
+				if(result[0].returnValue === "false"){
+					loadingStop();
+					alert("This Email Address is already registered in our database!");
+					return false;
+				}
+				
+				var fieldNames = ["username","mobile","email","dob","password","status"];
+				var fieldValues = [$("#username").val(),$("#mobile").val(),$("#email").val(),formatDatePickerDate($("#dob").val()),$("#password").val(),"inactive"];
+				
+				args = [{"List":fieldNames},{"List":fieldValues}];
+				result = call("Register","registerNewUser",args);
+				
+				if(result[0].returnValue === "true"){
+					loadingStop();
+					alert("Thank you for registering with 4WayCabs!\n.Account Activation Email is sent to your registered email address.\nActivate your account and enjoy hassle free rides with 4WayCabs!");
+					return true;
+				}
+				else{
+					loadingStop();
+					alert("Something is not right here!\nIt must be the case that we are already working on it.\nSorry for the inconvenience caused. Please try again after sometime.");
+					return false;
+				}
+				
+				loadingStop();
+			}
+	</script>
+
+<!-- blank container -->
+	<div class="container"></div>
+<!-- //blank container -->
+
+<body>
+<!-- Registration -->
+	
+	<!-- Section Header -->
+		<div class="section-header">Register with us</div>
+	<!-- //Section Header -->
+	
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+	<!-- Registration form-->
+		<div id='register'>
+		<div class="container">
+			<div class="twelve columns">
+				<form id='register-form' action="../Home/" method="post" onsubmit="return submitRegistrationForm();">
+					<div class="row">
+					    <div class="six columns offset-by-three">
+					      <label for="username">Full Name *</label>
+					      <input class="u-full-width" type="text" value="" id="username" name="username" required />
+					    </div>
+					 </div>
+					 <div class="row">
+					    <div class="six columns offset-by-three">
+					      <label for="mobile">Mobile *</label>
+					      <input class="u-full-width" type="text" value="" id="mobile" name="mobile" pattern="[789][0-9]{9}" required />
+					    </div>
+					 </div>
+					 <div class="row">
+					    <div class="six columns offset-by-three">
+					      <label for="email">Email *</label>
+					      <input class="u-full-width" type="email" value="" id="email" name="email" required />
+					    </div>
+		 			</div>
+		 			
+		 			<div class="row">
+					    <div class="six columns offset-by-three">
+					      <label for="dob">Date of Birth *</label>
+					      <input class="u-full-width" type="text" value="" id="dob" name="dob" required readonly />
+					    </div>
+		 			</div>
+		 			
+		 			<div class="row">
+					    <div class="six columns offset-by-three">
+					      <label for="password">Password *</label>
+						  <input class="u-full-width" type="password" value="" id="password" name="password" required />
+					    </div>
+					</div>
+					<div class="row">
+					    <div class="six columns offset-by-three">
+					      <label for="confirm-password">Confirm Password *</label>
+					      <input class="u-full-width" type="password" value="" id="confirm-password" name="confirm-password" required />
+					    </div>
+		 			</div>
+		 			
+		 			<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+		 			<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+					
+		 			<div class="row">
+					      <input class="hvr-wobble-bottom button button-primary six columns offset-by-three" type="submit" name="submit" id="submit" value="Register" />
+		 			</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<!-- //Registration Form -->
+
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+<!-- //Registration -->	
+
+<!-- blank container -->
+	<div class="container"></div>
+<!-- //blank container -->
+
+
+<!-- Separator -->
+	<div class='separator'></div>
+<!-- //Separator -->
+</body>
+</html>

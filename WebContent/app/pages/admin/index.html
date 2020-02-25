@@ -1,0 +1,455 @@
+<!doctype html>
+<html>
+<head>
+
+   <meta charset='utf-8'>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <script src="js/master.js" type="text/javascript"></script>
+   <link rel="stylesheet" href="css/master.css">
+  
+   <title>Home</title>
+   <script>
+   		setSessionAttribute("user","administrator");
+   		removeSessionAttribute('bookng_number');
+   </script>
+</head>
+	<script>
+			$(document).ready(function (){
+	   			var picker1 = $('#orderDate').datetimepicker({
+	   				validateOnBlur:true,
+	   				theme:'light',
+	   				defaultDate:0,
+	   				todayButton:true,
+	   				timepicker:false
+	   			});
+	   			
+	   			var args = [{}];
+				var resultList = call("DatabaseTables","fetch",args);
+				var html = "";
+				for(var a=0;a<resultList.length;a++){
+					html += "<option value=\""+resultList[a].returnValue+"\">"+(resultList[a].returnValue).toUpperCase()+"</option>";
+				}
+				$('#update-database-table-select').html(html);
+		   		$("#update-database-table-update-all").html("");
+		   		$("#update-database-table").html("");
+			});
+			function submitGuestForm(){
+				
+				var fieldNames = ["email","mobile"];
+				var fieldValues = [$("#email").val(),$("#mobile").val()];
+				
+				args = [{"List":fieldNames},{"List":fieldValues}];
+				result = call("Register","registerGuest",args);
+				
+				if(result[0].returnValue === "true"){
+					setSessionAttribute("user","Guest");
+					setSessionAttribute("email",$("#email").val());
+					setSessionAttribute("mobile",$("#mobile").val());
+					return true;
+				}
+				else{
+					alert("Something is not right here!\nIt must be the case that we are already working on it.\nSorry for the inconvenience caused. Please try again after sometime.");
+					window.open("../","_self");
+				}
+			}
+			
+			function search(action){
+				loading();
+				var html = "";
+				var result = null;
+				if(action === 'number'){
+					var args = [{"String":$(order).val()}];
+					result = call("Booking","fetchBookingWithNumber",args);
+					if(result.length > 0){
+						for(var a=0;a<result.length;a++){
+							html += "<tr>";
+							html += "<td row-name='Number'>";
+							html += "<a href='javascript:manageOrder(\""+result[a].booking_number+"\");'>" + result[a].booking_number + "</a>";
+							html += "</td>";
+							html += "<td row-name='Name'>";
+							html += result[a].username;
+							html += "</td>";
+							html += "<td row-name='Mobile'>";
+							html += result[a].mobile;
+							html += "</td>";
+							html += "<td row-name='Date'>";
+							html += result[a].booking_date;
+							html += "</td>";
+							html += "<td row-name='Status'>";
+							html += result[a].status;
+							html += "</td>";
+							html += "</tr>";
+						}
+					}
+					else{
+						html = "No Orders Found";
+					}
+				}
+				else if(action === 'date'){
+					var args = [{"String":$('#orderDate').val()}];
+					result = call("Booking","fetchBookingsBeforeDate",args);
+					if(result.length > 0){
+						for(var a=0;a<result.length;a++){
+							html += "<tr>";
+							html += "<td row-name='Number'>";
+							html += "<a href='javascript:manageOrder(\""+result[a].booking_number+"\");'>" + result[a].booking_number + "</a>";
+							html += "</td>";
+							html += "<td row-name='Name'>";
+							html += result[a].username;
+							html += "</td>";
+							html += "<td row-name='Mobile'>";
+							html += result[a].mobile;
+							html += "</td>";
+							html += "<td row-name='Date'>";
+							html += result[a].booking_date;
+							html += "</td>";
+							html += "<td row-name='Status'>";
+							html += result[a].status;
+							html += "</td>";
+							html += "</tr>";
+						}
+					}
+					else{
+						html = "No Orders Found";
+					}
+				}
+				else if(action === 'status'){
+					var args = [{"String":$('#orderStatus').val()}];
+					result = call("Booking","fetchBookingsWithStatus",args);
+					if(result.length > 0){
+						for(var a=0;a<result.length;a++){
+							html += "<tr>";
+							html += "<td row-name='Number'>";
+							html += "<a href='javascript:manageOrder(\""+result[a].booking_number+"\");'>" + result[a].booking_number + "</a>";
+							html += "</td>";
+							html += "<td row-name='Name'>";
+							html += result[a].username;
+							html += "</td>";
+							html += "<td row-name='Mobile'>";
+							html += result[a].mobile;
+							html += "</td>";
+							html += "<td row-name='Date'>";
+							html += result[a].booking_date;
+							html += "</td>";
+							html += "<td row-name='Status'>";
+							html += result[a].status;
+							html += "</td>";
+							html += "</tr>";
+						}
+					}
+					else{
+						html = "No Orders Found";
+					}
+				}
+				else{
+					html = "No Orders Found";
+				}
+				
+				$('#bookings-table-body').html(html);
+				loadingStop();
+			}
+			
+			function manageOrder(orderNumber){
+				setSessionAttribute('booking_number',orderNumber);
+				window.open("ManageOrder/","_self");
+			}
+			
+		   	function loadTable(){
+		   		loading();
+		   		$("#update-database-table-update-all").html("");
+		   		$("#update-database-table").html("");
+		   		var selectTable = $("#update-database-table-select").val();
+		   		var args = [{}];
+		   		var className = null;
+		   		var methodName = null;
+		   		
+		   		if(selectTable === "bookings"){
+		   			className = "Booking";
+		   			methodName = "fetchAllBookings";
+		   		}
+		   		else if(selectTable === "users_registered"){
+		   			className = "Login";
+		   			methodName = "getAllRegisteredUsers";
+		   		}
+		   		else if(selectTable === "users_guest"){
+		   			className = "Login";
+		   			methodName = "getAllGuests";
+		   		}
+		   		else if(selectTable === "coupons"){
+		   			className = "Discount";
+		   			methodName = "getAllUsedCoupons";
+		   		}
+		   		
+		   		if(className != null && methodName != null){
+		   			var result = call(className,methodName,args);
+		   			if(result.length > 0){
+		   			var keys = Object.keys(result[0]);
+		   			var html = "<table class=\"twelve columns\"><thead>";
+		   			for(var a=0;a<keys.length;a++){
+		   				html += "<th>"+keys[a]+"</th>";
+		   			}
+		   			
+		   			html += "</thead><tbody>";
+		   			
+		   			for(var b=0;b<result.length;b++){
+		   				html += "<tr>";
+		   				for(var c=0;c<keys.length;c++){
+		   	   				html += "<td>";
+		   	   				html += result[b][keys[c]];
+		   	   				html += "</td>";	
+		   				}
+		   				html += "</tr>";
+		   			}
+		   			html += "</tbody></table>";
+		  
+		   			$("#update-database-table").html(html);
+		   			}
+		   		}
+		   		loadingStop();
+		   	}
+			
+	</script>
+
+<!-- blank container -->
+	<div class="container"></div>
+<!-- //blank container -->
+
+<body>
+	
+	<!-- Section Header -->
+		<div class="section-header">Admin Panel</div>
+	<!-- //Section Header -->
+	
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+		<!-- website content-->
+		<div id='manage-bookings'>
+		
+		<!-- Form Header -->
+			<div class="page-header">Manage Bookings</div>
+		<!-- //Form Header -->
+		
+		<!-- Separator -->
+		<div class="separator-blank"></div>
+		<!-- //Separator -->
+		
+			<div class="block-row container">
+	
+				<div class="four columns">
+					<div class="block">
+					<h5>Order Number</h5>
+					<input type="text" name="order" id="order" value="" placeholder="Booking Number"/>
+					<a href="javascript:search('number');" class="button button-primary">Search</a>
+					</div>
+				</div>
+				
+				<div class="four columns">
+					<div class="block">
+					<h5>Date</h5>
+					<input type="text" name="orderDate" id="orderDate" value="" placeholder="Before Date"/>
+					<a href="javascript:search('date');" class="button button-primary">Search</a>
+					</div>
+				</div>
+				
+				<div class="four columns">
+					<div class="block">
+					<h5>Status</h5>
+					<select name="orderStatus" id="orderStatus" value="">
+						<option value="complete" selected>Completed Orders</option>
+						<option value="in progress">In Progress Orders</option>
+						<option value="received">Received Orders</option>
+					</select>
+					<a href="javascript:search('status');" class="button button-primary">Search</a>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+		
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+		
+	<!-- bookings table -->
+	<div id="bookings-table">
+		<div class="container">
+			<table class="responsive twelve columns">
+				<thead>
+					<th>Number</th>
+					<th>Name</th>
+					<th>Mobile</th>
+					<th>Date</th>
+					<th>Status</th>
+				</thead>
+				<tbody id="bookings-table-body">
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<!-- bookings table -->
+	
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+	<!-- website content-->
+		<div id='website-content'>
+		
+		<!-- Form Header -->
+			<div class="page-header">Update Website Content</div>
+		<!-- //Form Header -->
+		
+		<!-- Separator -->
+		<div class="separator-blank"></div>
+		<!-- //Separator -->
+		
+		<div class="block-row container">
+		
+			<div class="four columns">
+				<div class='block'>
+				<h5>Banner Image</h5>
+				Click here to update banner image<br><br>
+				<a href="BannerImage/" class='button button-primary'>Update</a>
+				</div>
+			</div>
+			
+			<div class="four columns">
+				<div class='block'>
+				<h5>Logo Image</h5>
+				Click here to update Logo image<br><br>
+				<a href="LogoImage/" class='button button-primary'>Update</a>
+				</div>
+			</div>
+			
+			<div class="four columns">
+				<div class='block'>
+				<h5>Contact Number</h5>
+				Click here to update Contact Number<br><br>
+				<a href="BannerContact/" class='button button-primary'>Update</a>
+				</div>
+			</div>
+			
+		</div>
+		
+		<div class="block-row container">
+			
+			<div class="four columns">
+				<div class='block'>
+				<h5>Vehicle Models</h5>
+				Click here to update Vehicle Models of drop<br><br>
+				<a href="VehicleModels/?select=drop" class='button button-primary'>Update</a>
+				</div>
+			</div>
+			
+			<div class="four columns">
+				<div class='block'>
+				<h5>Vehicle Models</h5>
+				Click here to update Vehicle Models of round trip<br><br>
+				<a href="VehicleModels/?select=round" class='button button-primary'>Update</a>
+				</div>
+			</div>
+			
+			<div class="four columns">
+				<div class='block'>
+				<h5>How We Work</h5>
+				Click here to update 'How We Work' block<br><br>
+				<a href="HowWeWork/" class='button button-primary'>Update</a>
+				</div>
+			</div>
+			
+		</div>
+		
+		<div class="block-row container">
+			
+			<div class="four columns">
+				<div class='block'>
+				<h5>Our Story</h5>
+				<a href="OurStoryImages/" class='button button-primary'>Update Images</a>
+				<a href="OurStoryData/" class='button button-primary'>Update Data</a>
+				</div>
+			</div>
+			
+			<div class="four columns">
+				<div class='block'>
+				<h5>User Reviews</h5>
+				Click here to update User Reviews<br><br>
+				<a href="UserReviews/" class='button button-primary'>Update</a>
+				</div>
+			</div>
+			
+			<div class="four columns">
+				<div class='block'>
+				<h5>Advertisement</h5>
+				Click here to update Ad on home page<br><br>
+				<a href="Ad/" class='button button-primary'>Update</a>
+				</div>
+			</div>
+			
+		</div>
+		
+				
+		<div class="block-row container">
+			
+			<div class="four columns">
+				<div class='block'>
+				<h5>Coupon Codes</h5>
+				Click here to update coupon codes<br><br>
+				<a href="CouponCodes/" class='button button-primary'>Update</a>
+				</div>
+			</div>
+			
+			<div class="four columns">
+				<div class='block'>
+				<h5>Terms and Conditions</h5>
+				Click here to update terms and conditions<br><br>
+				<a href="Terms/" class='button button-primary'>Update</a>
+				</div>
+			</div>
+			
+		</div>
+		
+		
+	</div>
+
+	<!-- //website content -->
+
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+	<div class="container">
+		<div class="twelve columns">
+			<select id="update-database-table-select" onchange="loadTable();">	
+			</select>
+			&nbsp;&nbsp;<a href="javascript:loadTable();" class="button button-primary">Load Table</a>
+			<div id="update-database-table" class="update-database-table-block">
+			</div>
+			<!-- Separator -->
+				<div class='separator-blank'></div>
+			<!-- //Separator -->
+		</div>
+	</div>
+	
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+<!-- //admin-panel -->	
+
+<!-- blank container -->
+	<div class="container"></div>
+<!-- //blank container -->
+
+
+<!-- Separator -->
+	<div class='separator'></div>
+<!-- //Separator -->
+</body>
+</html>

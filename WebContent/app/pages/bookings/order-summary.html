@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+
+   <meta charset='utf-8'>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <script src="js/master.js" type="text/javascript"></script>
+   <link rel="stylesheet" href="css/master.css">
+  
+   <title>Home</title>
+</head>
+	<script>
+			$(document).ready(function (){
+				//removeSessionAttribute('booking');
+			});
+			
+	</script>
+
+<!-- blank container -->
+	<div class="container"></div>
+<!-- //blank container -->
+
+<body>
+	
+	<!-- Section Header -->
+		<div class="section-header">Order Details</div>
+	<!-- //Section Header -->
+	
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+		<!-- website content-->
+		<div id='manage-bookings'>
+		
+		<!-- Separator -->
+		<div class="separator-blank"></div>
+		<!-- //Separator -->
+		
+			<div class="container">
+	
+				<div class="twelve columns">
+					<div id="order-details-table">
+						<table class="twelve columns">
+							<tbody id="order-details-table-body">
+							</tbody>
+								<script>
+									var html="";
+									if(typeof getUrlParameter('booking') != 'undefined'){
+										var args=[{"String":getUrlParameter('booking')}];
+										var bookingDetails = call("Booking","fetchBookingWithNumber",args);
+										if(bookingDetails.length>0){
+											html += "<h5><b>"+bookingDetails[0]['booking_number']+"</b></h5>";
+											html += "<h6>Status 		: <b>"+bookingDetails[0]['status']+"</b></h6>";
+											html += "<tr><td>Name</td><td>"+bookingDetails[0]['username']+"</td></tr>";
+											html += "<tr><td>From</td><td>"+bookingDetails[0]['from_location']+"</td></tr>";
+											html += "<tr><td>To</td><td>"+bookingDetails[0]['to_location']+"</td></tr>";											
+											html += "<tr><td>Vehicle Model</td><td>"+(bookingDetails[0]['vehicle'].replace("-"," ")).toUpperCase()+"</td></tr>";
+											if(bookingDetails[0]['trip_type'] === 'round'){
+												html += "<tr><td>Trip Type</td><td>"+"Round Trip"+"</td></tr>";	
+											}
+											else if(bookingDetails[0]['trip_type'] === 'drop'){
+												html += "<tr><td>Trip Type</td><td>"+"Only Drop"+"</td></tr>";
+											}
+											html += "<tr><td>Start Date</td><td>"+formatDatabaseDateDisplay(bookingDetails[0]['start_date'])+"</td></tr>";									
+											html += "<tr><td>Discount</td><td>Rs. "+bookingDetails[0]['discount']+"</td></tr>";
+											html += "<tr><td>Actual Distance</td><td>"+bookingDetails[0]['actual_distance']+"</td></tr>";
+											html += "<br><h5> Actual Fare : <b> Rs. "+bookingDetails[0]['actual_fare']+"<b><h5>";
+											
+										}
+										else{
+											html += "<h5>Order Number Not Found!</h5>";
+										}
+									}
+									else{
+										html += "<h5>Order Number Not Found!</h5>";
+									}
+									$("#order-details-table-body").html(html);
+								</script>
+						</table>
+						
+					</div>
+				</div>
+				
+			</div>
+		</div>
+		
+	<!-- Separator -->
+		<div class="separator-blank"></div>
+	<!-- //Separator -->
+	
+	
+	<div class="container"><a href="../" class="button button-primary">Go Back</a></div>
+	
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+</body>
+</html>

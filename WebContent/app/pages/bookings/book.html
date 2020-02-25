@@ -1,0 +1,555 @@
+<!doctype html>
+<html>
+<head>
+
+   <meta charset='utf-8'>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <script src="js/master.js" type="text/javascript"></script>
+   <link rel="stylesheet" href="css/master.css">
+  
+   <title>Home</title>
+   
+   	<script src="http://maps.googleapis.com/maps/api/js?sensor=false&amp;libraries=places&amp;key=AIzaSyAiA6uiDKjG9tKIkpUy9d6FGPYmuttBTkY"></script>
+	<script src="js/jquery.geocomplete.js"></script>
+   <script>
+   		if(user===null || user === "" || user.trim() === "" || user.toUpperCase() ==="FALSE"){
+   			home();
+   		}
+   		var jsonName = "vehicle-types-round.json";
+		function initialize() {
+			 var options = {
+			  componentRestrictions: {country: "IN"}
+			 };
+			 var input1 = document.getElementById('from');
+			 var input2 = document.getElementById('to');
+			 var autocomplete = new google.maps.places.Autocomplete(input1, options);
+			 var autocomplete = new google.maps.places.Autocomplete(input2, options);
+			}
+		google.maps.event.addDomListener(window, 'load', initialize);
+        
+        $(document).on('click', '#calculate', function(e) {
+            e.preventDefault();
+            $("#map_canvas").show();
+            initialize1();
+            calculateRoute();
+        });
+        
+        $(document).on('click', '#showDirections', function(e) {
+            e.preventDefault();
+            showDirections();
+            $("#showDirectionsDiv").hide();
+            $("#hideDirectionsDiv").show();
+        });
+        
+        $(document).on('click', '#hideDirections', function(e) {
+            e.preventDefault();
+            hideDirections();
+            $("#showDirectionsDiv").show();
+            $("#hideDirectionsDiv").hide();
+        });
+        
+        var directionDisplay,
+        directionsService = new google.maps.DirectionsService(),
+        map;
+        
+        function initialize1() 
+        {
+            directionsDisplay = new google.maps.DirectionsRenderer();
+            var mapCenter = new google.maps.LatLng(15.128385, 79.176611);
+
+            var myOptions = {
+                zoom:10,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                center: mapCenter
+            }
+
+            map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+            directionsDisplay.setMap(map);
+            directionsDisplay.setPanel(document.getElementById("directions"));  
+        }
+
+        function calculateRoute() 
+        {
+            var selectedMode = "DRIVING",
+                start = $("#from").val(),
+                end = $("#to").val();
+
+            if(start == '' || end == '')
+            {
+                // cannot calculate route
+                $("#results").hide();
+                return;
+            }
+            else
+            {
+                var request = {
+                    origin:start, 
+                    destination:end,
+                    travelMode: google.maps.DirectionsTravelMode[selectedMode]
+                };
+
+                directionsService.route(request, function(response, status) {
+                    if (status == google.maps.DirectionsStatus.OK) {
+                        directionsDisplay.setDirections(response); 
+                        $("#showDirectionsDiv").show();
+                        $("#hideDirectionsDiv").hide();
+                        
+                        var service = new google.maps.DistanceMatrixService();
+                        service.getDistanceMatrix({
+                            origins: [start],
+                            destinations: [end],
+                            travelMode: google.maps.TravelMode.DRIVING,
+                            unitSystem: google.maps.UnitSystem.METRIC,
+                            avoidHighways: false,
+                            avoidTolls: false
+                        }, function (response, status) {
+                            if (status == google.maps.DistanceMatrixStatus.OK && response.rows[0].elements[0].status != "ZERO_RESULTS") {
+                                var distance = response.rows[0].elements[0].distance.text;
+                                var distanceInt = response.rows[0].elements[0].distance.value;
+                                var select = $('#select-trip-type').val();
+                                if(select === 'round'){
+                                	distanceInt = distanceInt * 2;
+                                }
+                                var duration = response.rows[0].elements[0].duration.text;
+                                var dvDistance = document.getElementById("distance");
+                                var dvDuration = document.getElementById("days");
+                                var dvFare = document.getElementById("rate");
+                                var dvFareInt = document.getElementById("rateInt");
+                                
+                                dvDuration.value = "";
+                                dvDuration.value = duration;
+                                
+                                if(select === 'round'){
+                                	dvDuration.value = duration + " X 2";
+                                }
+                                
+                                distanceInt = parseInt(distanceInt/1000);
+                               	dvDistance.value = "";
+                                dvDistance.value = distanceInt + " Kms";
+                                var fare = calculateFare(distanceInt);
+                                dvFare.value = "Rs. " + fare;
+                                dvFareInt.value = fare;
+                     
+                            } else {
+                                alert("Unable to find the distance via road.");
+                            }
+                        });
+                    }
+                    else {
+                        $("#showDirectionsDiv").hide();
+                        $("#results").hide();
+                    }
+                });
+
+            }
+        }
+        function showDirections(){
+        	$("#results").show();
+        }
+        function hideDirections(){
+        	$("#results").hide();
+        }
+        function calculateFare(d){
+			var value = $("#vehicle").val();
+   			var select = $('#select-trip-type').val();
+   			var jsonName = "vehicle-types-round.json";
+   			if(select === 'drop'){
+   				jsonName = "vehicle-types-drop.json";
+   			}
+			var items = getJSON(jsonName);			
+      		for(var i=0;i<items.length;i++){
+  				if(value === items[i].value){
+  					break;
+  				}
+    		}
+      		var farePerKM = items[i].farePerKM;
+      		var dvFarePerKMDisplay = document.getElementById("farePerKMDisplay");
+      		dvFarePerKMDisplay.value = "Rs. " + farePerKM;
+      		var fareKMs = parseInt(farePerKM) * parseInt(d);
+
+      		if(select === 'round'){
+      			if(parseInt(d) < 300){
+      				fareKMs = parseInt(farePerKM) * 300;
+      			}
+      		}
+      		else if(select === 'drop'){
+          		if(parseInt(d) < 100){
+          			fareKMs = parseInt(farePerKM) * 100;
+          		}
+      		}
+
+      		var baseFare = parseInt(items[i].baseFare);
+      		var subTotal = baseFare + fareKMs;
+      		var serviceTax = (parseInt(items[i].serviceTax)/100) * (subTotal);
+      		var totalFare = subTotal + serviceTax;
+      		var discount = (parseInt(items[i].discount)/100);
+      		if(discount != 0){
+      			totalFare = totalFare - (totalFare * discount);
+      		}
+      		return totalFare;
+        }
+        
+        function checkCode(){
+        	var valid = false;
+        	var discount = 0;
+        	var todayDate = new Date();
+        	var getCoupons = getJSON('coupon.json');
+        	for(var z=0;z<getCoupons.length;z++){
+        		if($('#couponCode').val() === getCoupons[z].code){
+        			discount = getCoupons[z].discount;
+        			var validDate = new Date(formatDatePickerDate(getCoupons[z].validTillDate).substring(0,10));
+        			if(validDate.getTime() >= todayDate.getTime()){
+        				if(user.toUpperCase() === "GUEST"){
+        					if(getCoupons[z].validUser === "all"){
+        						valid = true;
+        						$("#discountApplied").val(discount);
+        						$("#codeApplied").val(getCoupons[z].code);
+        					}
+        				}
+        				else{
+        					if(getCoupons[z].validUser === "user"){
+        						var args = [{"String":user},{"String":$('#couponCode').val()}];
+        		        		var verifyCoupon = call("Discount","verifyCoupon",args);
+        		        		verifyCoupon = [{"returnValue":"true"}];
+        		        		if(verifyCoupon[0].returnValue === 'true'){
+        		        			valid = true;
+        		        			$("#discountApplied").val(discount);
+        		        			$("#codeApplied").val(getCoupons[z].code);
+        		        		}
+        					}
+        				}
+        			}
+
+        		}
+        	}
+        	
+        	
+        	if(valid){
+        			$('#couponApplied').html('<h6>Coupon Applied. Discount : Rs. '+discount+'</h6>');	
+        	}
+        	else{
+        			$('#couponApplied').html('<h5>Invalid Coupon Code</h5>');
+        	}
+        }
+        
+   </script>
+</head>
+	<script>
+			$(document).ready(function(){
+	   			$("#user-name").val(user);
+	   			$("#email").val(getSessionAttribute('email'));
+	   			if(user.toUpperCase() === "GUEST"){
+	   				$("#mobile").val(getSessionAttribute('mobile'));	
+	   			}
+	   			else{
+					var args = [{"String":getSessionAttribute('email')}];
+					var result = call("Login","getMobile",args);
+					$("#mobile").val(result[0].returnValue);
+	   			}
+	   			
+	   			if(user.toUpperCase() === 'GUEST'){
+	   			removeSessionAttribute("email");
+	   			removeSessionAttribute("mobile");
+	   			removeSessionAttribute("user");
+	   			}
+	   			updateVehicle();
+	   			updateCarImage();
+	   			var picker1 = $('#start-date').datetimepicker({
+	   				validateOnBlur:true,
+	   				theme:'light',
+	   				minDate:new Date(),
+	   				defaultDate:0,
+	   				todayButton:true,
+	   				timepicker:false
+	   			});
+			});
+			
+			function submitBookingForm(){
+				loading();
+	            initialize1();
+	            calculateRoute();
+	            if(user.toUpperCase() === 'GUEST'){
+	   			removeSessionAttribute("email");
+	   			removeSessionAttribute("mobile");
+	   			removeSessionAttribute("user");
+	            }
+				if($('#start-date').val() === ''){
+					loadingStop();
+					alert("Please select start date!");
+					return false;
+				}
+	   			var uniqueBookingNumber = call("Booking","generateBookingNumber",null);
+	   			if(uniqueBookingNumber[0].returnValue === "false"){
+	   				loadingStop();
+					alert("Something is not right here!\nIt must be the case that we are already working on it.\nSorry for the inconvenience caused. Please try again after sometime.");
+					return false;
+	   			}
+	   			
+				var fieldNames = ["username","mobile","email","booking_number","from_location","to_location","vehicle","start_date","estimated_duration","estimated_distance","estimated_fare","actual_fare","status","actual_distance","actual_duration","discount","booking_date","vehicle_number","driver_name","driver_mobile","extra_fare","trip_type"];
+				var fieldValues = [$("#user-name").val(),$("#mobile").val(),$("#email").val(),uniqueBookingNumber[0].returnValue,$("#from").val(),$("#to").val(),$("#vehicle").val(),formatDatePickerDate($("#start-date").val()),$("#days").val(),$("#distance").val(),$("#rate").val(),"NA","received","NA","NA",$("#discountApplied").val(),formatDate(new Date()),"NA","NA","NA","0",$('#select-trip-type').val()];
+				
+				var args = [{"List":fieldNames},{"List":fieldValues}];
+				var result = call("Booking","registerNewBooking",args);
+				
+				if(result[0].returnValue === "true"){
+					if($("#discountApplied").val() != '0'){
+						var fieldNames = ["user","code"];
+						var fieldValues = [user,$("#codeApplied").val()];
+						var args = [{"List":fieldNames},{"List":fieldValues}];
+						call("Discount","updateUsedCoupons",args);	
+					}
+					//send mail and sms
+					var data = [uniqueBookingNumber[0].returnValue,$("#from").val(),$("#to").val(),$("#vehicle").val()];
+					sendNotificationToUser($("#email").val(),$("#mobile").val(),'new-booking',data);
+					$('#booking-form').attr("action","../ConfirmBooking/");
+					setSessionAttribute("booking_number",uniqueBookingNumber[0].returnValue);
+					loadingStop();
+					return true;
+				}
+				else{
+					loadingStop();
+					alert("Something is not right here!\nIt must be the case that we are already working on it.\nSorry for the inconvenience caused. Please try again after sometime.");
+					return false;
+				}
+				loadingStop();
+			}
+			
+			function updateCarImage(){
+				var value = $("#vehicle").val();
+				var jsonName = 'vehicle-types-round.json';
+				if($('#select-trip-type').val() === 'round'){
+					jsonName = 'vehicle-types-round.json';
+				}
+				else if($('#select-trip-type').val() === 'drop'){
+					jsonName = 'vehicle-types-drop.json';	
+				}
+				var items = getJSON(jsonName);			
+				var html = "";
+	      		for(var i=0;i<items.length;i++){
+      				if(value === items[i].value){
+      					break;
+      				}
+	    		}
+	      		html += "<img src='"+items[i].href+"' alt='IMAGE OF "+items[i].label+"'>";
+	      		$('#vehicle-image').html(html);
+			}
+			function updateJsonName(){
+				var jsonName = 'vehicle-types-round.json';
+				if($('#select-trip-type').val() === 'round'){
+					jsonName = 'vehicle-types-round.json';
+				}
+				else if($('#select-trip-type').val() === 'drop'){
+					jsonName = 'vehicle-types-drop.json';	
+				}
+				
+			}
+			function updateVehicle(){
+	   			var select = $('#select-trip-type').val();
+	   			var jsonName = "vehicle-types-round.json";
+	   			if(select === 'drop'){
+	   				jsonName = "vehicle-types-drop.json";
+	   			}
+				var items = getJSON(jsonName);			
+				var html = "";
+	      		for(var i=0;i<items.length;i++){
+      			html += "<option value='"+items[i].value+"'>"+items[i].label+"</option>";
+	    		}
+	      		$('#vehicle').html(html);
+			}
+	</script>
+
+<!-- blank container -->
+	<div class="container"></div>
+<!-- //blank container -->
+
+<body>
+<!-- Registration -->
+	
+	<!-- Section Header -->
+		<div class="section-header">Booking Details</div>
+	<!-- //Section Header -->
+	
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+	<!-- Booking form-->
+		<div id='booking'>
+		<div class="container">
+			<div class="twelve columns">
+				<form id='booking-form' action="../Home/" method="post" onsubmit="return submitBookingForm();">
+					<div class="row">
+					    <div class="four columns">
+					      <!-- <label for="user-name">Name</label>-->
+					      <input class="u-full-width" type="hidden" value="" id="user-name" name="user-name" required readonly disabled />
+					    </div>
+					    <div class="four columns">
+					      <!-- <label for="mobile">Mobile</label>-->
+					      <input class="u-full-width" type="hidden" value="" id="mobile" name="mobile" required readonly disabled />
+					    </div>
+					    <div class="four columns">
+					      <!-- <label for="email">Email</label>-->
+					      <input class="u-full-width" type="hidden" value="" id="email" name="email" required readonly disabled />
+					    </div>
+		 			</div>
+		 			<div class="row">
+					    <div class="six columns">
+					      <label for="from">From Location *</label>
+					      <input class="u-full-width" type="text" value="Hyderabad, Telangana, India" id="from" name="from" required readonly disabled />
+					    </div>
+					    <div class="six columns">
+					      <label for="to">To Location *</label>
+					      <input class="u-full-width" type="text" value="" id="to" name="to" required />
+					    </div>
+		 			</div>
+		 			
+		 			<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+					
+					<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+					
+		 			<div class="row">
+					    <div class="six columns">
+					  	  <label for="start-date">Start Date *</label>
+						  <input class="u-full-width" type="text" value="" id="start-date" name="start-date" required readonly />
+						  
+						  <label for="select-trip-type">Select Trip Type *</label>
+
+						 <select class="u-full-width" id='select-trip-type' required onchange="updateJsonName();  updateVehicle(); updateCarImage(); calculateRoute();">
+						 	<option value="round" selected>Round Trip</option>
+						 	<option value="drop">Only Drop</option>
+						 </select>
+						 
+
+					      <label for="vehile">Select Vehicle *</label>
+					      <select class="u-full-width" id='vehicle' onchange="updateCarImage(); updateJsonName(); calculateRoute();" required>
+
+					      </select>
+					      
+					      <input class="hvr-wobble-bottom button button-primary" type="button" name="calculate" id="calculate" value="Calculate Estimations" />
+							    
+					    </div>
+					    <div class="six columns">
+					      <label for="vehicle-image">Vehicle Photo</label>
+					      <div id="vehicle-image" name="vehicle-image"></div>
+					    </div>
+		 			</div>
+		 			
+		 			<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+					<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+					
+		 			<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+					<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+		 			
+		 			<div class="row">
+		 				<div class="three columns">
+					      <label for="days">Fare per KM</label>
+						  <input class="u-full-width" type="text" value="" id="farePerKMDisplay" name="farePerKMDisplay" readonly disabled/>
+					    </div>
+					    <div class="three columns">
+					      <label for="days">Estimated Duration</label>
+						  <input class="u-full-width" type="text" value="" id="days" name="days" required readonly disabled/>
+					    </div>
+					 	<div class="three columns">
+					      <label for="distance">Estimated Distance (Kms)</label>
+						  <input class="u-full-width" type="text" value="" id="distance" name="distance" required readonly disabled/>
+					    </div>
+					    <div class="three columns">
+					      <label for="rate">Estimated Cost</label>
+						  <input class="u-full-width" type="text" value="" id="rate" name="rate" required readonly disabled/>
+						  <input type="hidden" value="" id="rateInt" name="rateInt" required readonly/>
+					    </div>
+		 			</div>
+		 			
+		 			<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+		 			<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+					
+					<div class="row">
+					     <div id="map_canvas" style="height:300px;display:none;"></div>
+		 			</div>
+		 			<div id="results" style="display:none;">
+                    	<div id="directions"></div>
+              	 	</div>
+              	 	
+              	 	<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+              	 	
+              	 	<div id="showDirectionsDiv" style="display:none;" class="row">
+					      <input class="hvr-wobble-bottom button button-primary" type="button" name="showDirections" id="showDirections" value="Show Directions" />
+		 			</div>
+		 			<div id="hideDirectionsDiv" style="display:none;" class="row">
+					      <input class="hvr-wobble-bottom button button-primary" type="button" name="hideDirections" id="hideDirections" value="Hide Directions" />
+		 			</div>
+              	 	
+              	 	<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+					
+					<div class="row">
+					    <div class="six columns">
+					      <label for="couponCode">Coupon Code</label>
+						  <input class="u-full-width" type="text" value="" id="couponCode" name="couponCode" onblur="checkCode();"/>
+						  <input type="hidden" value="" id="codeApplied" name="codeApplied" />
+						  <input type="hidden" value="0" id="discountApplied" name="discountApplied" />
+						  <a href="javascript:checkCode();" class="button button-primary">Apply Coupon</a>
+					    </div>
+
+					   	<div class="six columns">
+						  <div id='couponApplied'></div>
+					    </div>
+					    
+		 			</div>
+		 			
+		 			<div><i>* Note : Discount will be reflected in the final payment. Please check Terms and Conditions for detailed cost breakdown structure</i></div>
+		 			
+		 			<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+		 			
+		 			<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+					
+		 			<div class="row">
+					      <input class="hvr-wobble-bottom button button-primary" type="submit" name="submit" id="submit" value="Confirm Booking Details" />
+		 			</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<!-- //Booking Form -->
+
+	<!-- Separator -->
+		<div class="separator-blank-big"></div>
+	<!-- //Separator -->
+	
+<!-- //Registration -->	
+
+<!-- blank container -->
+	<div class="container"></div>
+<!-- //blank container -->
+
+
+<!-- Separator -->
+	<div class='separator'></div>
+<!-- //Separator -->
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!doctype html>
+<html>
+<head>
+
+   <meta charset='utf-8'>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <script src="js/master.js" type="text/javascript"></script>
+   <link rel="stylesheet" href="css/master.css">
+  
+   <title>Home</title>
+   <script>
+   	if(user === "admin"){
+   		removeSessionAttribute("user");
+   	}
+   </script>
+</head>
+<script>
+	function submitContactForm(){
+		loading();
+		var args = [{"String":$("#user-name").val()},{"String":$("#email").val()},{"String":$("#mobile").val()},{"String":$("#purpose").val()},{"String":$("#message").val()}];
+		var result = call("Email","sendFeedbackMailToAdmin",args);
+		if(result[0].returnValue === "true"){
+			loadingStop();
+			alert("Thanks for writing.\n We will get back to you very soon!");
+			return true;
+		}
+		else{
+			loadingStop();
+			alert("Something is not right here!\nIt must be the case that we are already working on it.\nSorry for the inconvenience caused. Please try again after sometime.");
+			return false;
+		}
+		loadingStop();
+	}
+	function setUser(){
+		setSessionAttribute("user","admin");
+	}
+	function openOrder(){
+		var booking = $('#track-order-number').val();
+		if(booking != ''){
+			window.open("../OrderDetails/?booking="+booking,"_self");
+		}
+		else{
+			alert("Please enter Booking Number!");
+		}
+	}
+</script>
+<body>
+
+<!-- banner -->
+	<div id='banner'></div>
+<!-- //banner -->		
+	
+<!-- Separator -->
+<div class='separator'></div>
+<!-- //Separator -->
+	
+<!-- blank container -->
+	<div class="container">
+	</div>
+<!-- //blank container -->	
+
+<!-- ad -->
+	<div id='ad'></div>
+<!-- //ad -->
+	
+<!-- blank container -->
+	<div class="container">
+	</div>
+<!-- //blank container -->
+
+<!-- track-order -->
+	<div id='track-order'>
+		<div class="container">
+			<div class='two-thirds column'>
+				<input type='text' class="u-full-width" name='track-order-number' id='track-order-number' value='' autocomplete=off placeholder="Booking Number"/>
+			</div>
+			<div  class='one-third column'>
+				<a href="javascript:openOrder();" class='u-full-width button button-primary'>Track</a>
+			</div>
+		</div>
+	</div>
+<!-- //track-order -->	
+
+<!-- blank container -->
+	<div class="container">
+	</div>
+<!-- //blank container -->
+
+
+<!-- how we work -->
+	<!-- Section Header -->
+		<div id='how-we-work-header' class="section-header">How We Work?</div>
+	<!-- //Section Header -->
+	
+	<!-- Separator -->
+	<div class='separator-blank-big'></div>
+	<!-- //Separator -->
+	
+	<div id='how-we-work'>
+			
+		<div class='container'>
+			<div class='six columns'><div id="how-we-work-data-1"></div></div>
+			<div class='six columns'><div id="how-we-work-image-1"></div></div>
+		</div>
+		
+		<!-- Separator -->
+			<div class='separator-blank-big'></div>
+		<!-- //Separator -->
+		
+		<div class='container'>
+			<div class='six columns'><div id="how-we-work-image-2"></div></div>
+			<div class='six columns'><div id="how-we-work-data-2"></div></div>
+		</div>
+		
+		<!-- Separator -->
+			<div class='separator-blank-big'></div>
+		<!-- //Separator -->
+		
+		
+		<div class='container'>
+			<div class='six columns'><div id="how-we-work-data-3"></div></div>
+			<div class='six columns'><div id="how-we-work-image-3"></div></div>
+		</div>
+		
+	</div>
+	
+	<script>
+		var items = getJSON("how-we-work.json");			
+		var html = "";
+		html = "<img src='"+items[0].href+"' alt='How We Work Image 1' />";
+		$('#how-we-work-image-1').html(html);
+		html = "<p>"+items[0].data+"</p>";
+		$('#how-we-work-data-1').html(html);
+		html = "<img src='"+items[1].href+"' alt='How We Work Image 2' />";
+		$('#how-we-work-image-2').html(html);
+		html = "<p>"+items[1].data+"</p>";
+		$('#how-we-work-data-2').html(html);
+		html = "<img src='"+items[2].href+"' alt='How We Work Image 3' />";
+		$('#how-we-work-image-3').html(html);
+		html = "<p>"+items[2].data+"</p>";
+		$('#how-we-work-data-3').html(html);
+	</script>
+	
+	<!-- Separator -->
+	<div class='separator-blank-big'></div>
+	<!-- //Separator -->
+	
+<!-- //how we work -->
+
+<!-- our story -->
+	<!-- Section Header -->
+		<div id="our-story-header" class="section-header">Our Story</div>
+	<!-- //Section Header -->
+	
+	<!-- Separator -->
+	<div class='separator-blank-big'></div>
+	<!-- //Separator -->
+	
+   	<script>
+   			$(function () {
+   				$("#slider2").responsiveSlides({
+   			        auto: true,
+   			        pager: false,
+   			        nav: true,
+   			        speed: 500,
+   			        namespace: "callbacks",
+   			        before: function () {
+   			          $('.events').append("<li>before event fired.</li>");
+   			        },
+   			        after: function () {
+   			          $('.events').append("<li>after event fired.</li>");
+   			        }
+   			      });
+   			});
+   	</script>
+   
+	<div>
+	
+		<div id="our-story" class='container'>
+			
+				<div class='six columns'>
+					<div id='our-story-data'>
+						<script>
+							var items = getJSON("our-story-data.json");			
+							var html = "";
+							for(var i=0;i<items.length;i++){
+							html += "<p>"+items[i].data+"</p>";
+							}
+							$('#our-story-data').html(html);
+						</script>
+					</div>
+				</div>
+			
+			
+				<div id="our-story-slider" class='six columns'>
+					<div class="callbacks_container">
+					      <ul class="rslides" id="slider2">
+						      <script>
+						      		var items = getJSON("our-story-images.json");			
+						      		var html = "";
+						      		for(var i=0;i<items.length;i++){
+						      			html += "<li>";
+						      			html += "<img src=\""+items[i].href+"\" alt=\"OUR STORY IMAGE "+(i+1)+"\">";
+						      			html += "<p class=\"caption\">"+items[i].caption+"</p>";
+						      			html += "</li>"; 
+						      		}
+						      		$('#slider2').html(html);
+						      </script>
+					      </ul>
+					</div>
+				</div>
+			
+		</div>
+	</div>
+	
+	<!-- Separator -->
+	<div class='separator-blank-big'></div>
+	<!-- //Separator -->
+	
+<!-- //our story -->
+
+<!-- customers -->
+
+   	<script>
+   			$(function () {
+   				$("#slider3").responsiveSlides({
+   			        auto: true,
+   			        pager: false,
+   			        nav: true,
+   			        speed: 500,
+   			        namespace: "callbacks",
+   			        before: function () {
+   			          $('.events').append("<li>before event fired.</li>");
+   			        },
+   			        after: function () {
+   			          $('.events').append("<li>after event fired.</li>");
+   			        }
+   			      });
+   			});
+   	</script>
+
+	<!-- Section Header -->
+		<div id='customers-header' class="section-header">Check Our Customers</div>
+	<!-- //Section Header -->
+	
+	<!-- Separator -->
+	<div class='separator-blank-big'></div>
+	<!-- //Separator -->
+	
+	<div id="customers">
+		<div class='container' id='customer-review-slider'>
+			<div class="callbacks_container">
+				<ul class="rslides" id="slider3">
+					<script>
+						var items = getJSON("customer-review.json");			
+						var html = "";
+			      		for(var i=0;i<items.length;i++){
+		      			html += "<li><div class='twelve columns'>";
+		      			html += "<h5>"+items[i].name+"</h5>";
+		      			html += "<h6>"+items[i].title+"</h6>";
+		      			html += "<p class='left-margin right-margin'>"+items[i].comment+"</p>";
+		      			html += "<h6>"+items[i].date+"<h6>";
+						html += "</li>"; 
+			    		}
+			      		$('#slider3').html(html);
+			      	</script>
+				</ul>
+			</div>
+		</div>
+	</div>
+	
+	<!-- Separator -->
+	<div class='separator-blank-big'></div>
+	<!-- //Separator -->
+	
+<!-- //customers -->
+
+<!-- Separator -->
+	<div class='separator-blank'></div>
+<!-- //Separator -->
+
+<!-- contact -->
+
+	<!-- Section Header -->
+		<div id="contact-header" class="section-header">Talk to Us</div>
+	<!-- //Section Header -->
+	
+	<!-- Separator -->
+	<div class='separator-blank-big'></div>
+	<!-- //Separator -->
+	
+	<div id='contact'>
+		<div class="container">
+			<div class="twelve columns">
+				<form id='contact-form' method="post" onsubmit="return submitContactForm();">
+					<div class="row">
+					    <div class="six columns">
+					      <label for="name">Name</label>
+					      <input class="u-full-width" type="text" value="" id="user-name" name="user-name" required />
+					    </div>
+					    <div class="six columns">
+					      <label for="email">Email</label>
+					      <input class="u-full-width" type="email" value="" id="email" name="email" required />
+					    </div>
+		 			</div>
+		 			<div class="row">
+					    <div class="six columns">
+					      <label for="mobile">Mobile</label>
+					      <input class="u-full-width" type="text" value="" id="mobile" name="mobile" required />
+					    </div>
+					    <div class="six columns">
+					      <label for="purpose">Purpose</label>
+					      <input class="u-full-width" type="text" value="" id="purpose" name="purpose" required />
+					    </div>
+		 			</div>
+		 			<div class="row">
+					    <div class="twelve columns">
+					      <label for="message">Message</label>
+					      <textarea class="u-full-width" id="message" name="message" required></textarea>
+					    </div>
+		 			</div>
+		 			<!-- Separator -->
+						<div class='separator-blank'></div>
+					<!-- //Separator -->
+		 			<div class="row">
+					      <input class="hvr-wobble-bottom" type="submit" name="submit" id="submit" value="Send" />
+		 			</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	
+	<!-- Separator -->
+	<div class='separator-blank-big'></div>
+	<!-- //Separator -->
+
+<!-- //contact -->
+
+	<!-- Select Login -->
+	<div id="select-login"> 
+		<div class="container">
+			<div id="select-login-close" onclick="hideLoginSelect();"><div id="#select-login-close-img"><img src="images/close.png" alt="Close"></div></div>
+			<div>
+				<div class="container">
+					
+					<div id="login-selection" class="four columns">
+						<a href="../Login/" onclick="setUser();"><div class="hvr-bounce-to-right">Login</div></a>
+					</div>
+					
+					<div id="login-selection" class="four columns">
+						<a href="../Register/" onclick="setUser();"><div class="hvr-bounce-to-right">Register</div></a>
+					</div>
+					
+					<div id="login-selection" class="four columns">
+						<a href="../Guest/" onclick="setUser();"><div class="hvr-bounce-to-right">Guest</div></a>
+					</div>
+					
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- //Select Login -->
+
+<!-- Separator -->
+	<div class='separator'></div>
+<!-- //Separator -->
+	
+</body>
+</html>

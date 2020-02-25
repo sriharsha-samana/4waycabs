@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+<head>
+
+   <meta charset='utf-8'>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <script src="js/master.js" type="text/javascript"></script>
+   <link rel="stylesheet" href="css/master.css">
+  
+   <title>Home</title>
+   <script>
+   		if(user===null || user === "" || user.trim() === "" || user.toUpperCase() ==="FALSE"){
+   			home();
+   		}
+   		
+   		$(document).ready(function(){
+   			$('#username').html(user);
+   		});
+   		function preventBack(){window.history.forward();}
+   		setTimeout("preventBack()", 0);
+   		window.onunload=function(){null};
+   		
+   		function loadOrderDetails(booking){
+   			window.open('../OrderDetails/?booking='+booking,"_self");
+   		}
+   </script>
+</head>
+
+<!-- blank container -->
+	<div class="container"></div>
+<!-- //blank container -->
+
+<body>
+<!-- Booking Request -->
+	
+	<!-- Section Header -->
+		<div class="section-header">Welcome <span id='username'>user</span> </div>
+	<!-- //Section Header -->
+	
+	<div class="container" id="book-now">
+		<div id="account-booking-button" class="six columns">
+			<a href="../Book/"><div id="account-booking-button-a">Click Here to Make a New Booking</div></a>
+		</div>
+		<div id="account-booking-button" class="three columns">
+			<a class="button button-primary" href="UpdateProfile/">Update Profile</a>
+			<a class="button button-primary" href="../Logout/">Logout Profile</a>
+		</div>
+	</div>
+<!-- //Booking Request -->	
+
+<!-- Separator -->
+	<div class='separator-blank'></div>
+<!-- //Separator -->
+
+<!-- Previous Booking Requests -->
+	
+	<!-- Page Header -->
+		<div class="page-header">Your Previous Orders</div>
+	<!-- //Page Header -->
+	
+	<div class="container" id="pre-orders-table">
+		<div class="twelve columns">
+			<table class="responsive twelve columns">
+				<thead>
+					<th>Booking Number</th>
+					<th>Booking Date</th>
+					<th>Booking Status</th>
+					<th>Action</th>
+					<tbody id="pre-orders-table-body">
+						<script>
+							var html = "";
+							var args = [{"String":getSessionAttribute("email")}];
+							var result = call("Booking","getUserBookings",args);
+							if(result.length > 0){
+								for(var a=0;a<result.length;a++){
+									html += "<tr>";
+									html += "<td row-name='Number'>";
+									html += result[a].booking_number;
+									html += "</td>";
+									html += "<td row-name='Date'>";
+									html += result[a].booking_date;
+									html += "</td>";
+									html += "<td row-name='Status'>";
+									html += result[a].status;
+									html += "</td>";
+									html += "<td row-name='Action'>";
+									html += "<a href='javascript:loadOrderDetails(\""+result[a].booking_number+"\");'>Check Order Details.</a>";
+									html += "</td>";
+									html += "</tr>";
+								}
+							}
+							else{
+								html = "There are no orders from you.";
+							}
+							$('#pre-orders-table-body').html(html);
+						</script>
+					</tbody>
+				</thead>
+			</table>
+		</div>
+	</div>
+<!-- //Previous Booking Requests -->	
+
+<!-- Separator -->
+	<div class='separator-blank-big'></div>
+<!-- //Separator -->
+
+
+<!-- Separator -->
+	<div class='separator-blank-big'></div>
+<!-- //Separator -->
+
+<!-- blank container -->
+	<div class="container"></div>
+<!-- //blank container -->
+
+<!-- Separator -->
+	<div class='separator-blank-big'></div>
+<!-- //Separator -->
+
+<!-- Separator -->
+	<div class='separator'></div>
+<!-- //Separator -->
+</body>
+</html>
